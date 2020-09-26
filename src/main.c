@@ -2,6 +2,7 @@
 
 #include <8052.h>
 
+#include <i2c.h>
 #include <delay.h>
 
 // Red led
@@ -11,6 +12,8 @@
 
 void main()
 {
+    i2c_init();
+
     while (1)
     {
         if (SWITCH)
@@ -19,10 +22,10 @@ void main()
             delay_ms(50);
             LED = 0;
             delay_ms(950);
-        } else
-        {
-            LED=1;
         }
-        
+        else
+        {
+            LED = 1;
+        }
     }
 }

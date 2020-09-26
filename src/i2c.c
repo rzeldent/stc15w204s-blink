@@ -6,18 +6,11 @@ void i2c_init()
 	SCL = 1;
 }
 
-void i2c_start()
+unsigned char i2c_start(unsigned char addr)
 {
 	SDA = 0;
 	SCL = 0;
-}
-
-void i2c_restart()
-{
-	SDA = 1;
-	SCL = 1;
-	SDA = 0;
-	SCL = 0;
+	return i2c_send(addr);
 }
 
 void i2c_stop()
@@ -25,22 +18,6 @@ void i2c_stop()
 	SCL = 0;
 	SDA = 0;
 	SCL = 1;
-	SDA = 1;
-}
-
-void i2c_ack()
-{
-	SDA = 0;
-	SCL = 1;
-	SCL = 0;
-	SDA = 1;
-}
-
-void i2c_nak()
-{
-	SDA = 1;
-	SCL = 1;
-	SCL = 0;
 	SDA = 1;
 }
 
@@ -62,7 +39,7 @@ unsigned char i2c_send(unsigned char data)
 	return ack_bit;
 }
 
-unsigned char i2c_read()
+unsigned char i2c_read(unsigned char acknak)
 {
 	unsigned char i;
 	unsigned char data = 0;
@@ -75,8 +52,14 @@ unsigned char i2c_read()
 			data <<= 1;
 		SCL = 0;
 	}
+	SDA = acknak;
+	SCL = 1;
+	SCL = 0;
+	SDA = 1;
+
 	return data;
 }
+
 
 /*****************************************
  * Write to slave device with
