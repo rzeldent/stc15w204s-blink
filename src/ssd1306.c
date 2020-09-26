@@ -1,5 +1,6 @@
 #include <i2c.h>
 #include <ssd1306.h>
+#include <font8x5.h>
 
 // From: https://exploreembedded.com/wiki/OLED_Interface_With_8051
 
@@ -43,6 +44,10 @@
 #define SSD1306_SET_PRECHARGE_PERIOD 0xD9
 #define SSD1306_SET_VCOM_DESELECT 0xDB
 
+//  Variables
+unsigned int ssd1306_line;
+unsigned int ssd1306_column;
+
 void ssd1306_send_command(unsigned char cmd)
 {
     i2c_start(SSD1306_ADDRESS << 1);
@@ -51,7 +56,7 @@ void ssd1306_send_command(unsigned char cmd)
     i2c_stop();
 }
 
-void ssd1306_init(void)
+void ssd1306_init()
 {
     ssd1306_send_command(SSD1306_DISPLAY_OFF);
     ssd1306_send_command(SSD1306_SET_DISPLAY_CLOCK_DIV_RATIO);
@@ -94,22 +99,116 @@ void ssd1306_clear()
     ssd1306_send_command(0);
     ssd1306_send_command(7);
 
-
-    i2c_start(SSD1306_ADDRESS<<1);
+    i2c_start(SSD1306_ADDRESS << 1);
     i2c_send(SSD1306_DATA_CONTINUE);
 
-// Clear display
-    for (i=0; i<1024; i++)
+    // Clear display
+    for (i = 0; i < 1024; i++)
         i2c_send(0);
-   
+
     ssd1306_send_command(SSD1306_SET_COLUMN_ADDR);
     ssd1306_send_command(0);
     ssd1306_send_command(127);
 
     ssd1306_send_command(SSD1306_SET_PAGE_ADDR);
     ssd1306_send_command(0);
-    ssd1306_send_command(7);	  
+    ssd1306_send_command(7);
 
-    i2c_start(SSD1306_ADDRESS<<1);
+    i2c_start(SSD1306_ADDRESS << 1);
     i2c_send(SSD1306_DATA_CONTINUE);
+
+    ssd1306_line = 0;
+}
+
+void ssd1306_set_cursor(unsigned char line, unsigned char column)
+{
+    ssd1306_send_command(SSD1306_SET_COLUMN_ADDR);
+    ssd1306_send_command(column);
+    ssd1306_send_command(127);
+
+    ssd1306_send_command(SSD1306_SET_PAGE_ADDR);
+    ssd1306_send_command(line);
+    ssd1306_send_command(7);
+
+    i2c_start(SSD1306_ADDRESS << 1);
+    i2c_send(SSD1306_DATA_CONTINUE);
+
+    ssd1306_line = line;
+    ssd1306_column = column;
+}
+
+void ssd1306_goto_line(unsigned char line)
+{
+    ssd1306_line = line;
+    ssd1306_set_cursor(line, 0);
+}
+
+void ssd1306_go_to_next_line()
+{
+    ssd1306_goto_line((ssd1306_line + 1) & 0x07);
+}
+
+void ssd1306_display_char(char c)
+{
+    unsigned char i;
+
+    if (c == '\n')
+    {
+        ssd1306_go_to_next_line();
+        return;
+    }
+
+    if (ssd1306_column >= SSD1306_WIDTH - FONT_SIZE)
+        ssd1306_go_to_next_line();
+
+    // starts from space (0x20)
+    c = c - ' ';
+    for (i = 0; i < FONT_SIZE; ++i)
+    {
+        i2c_send(font_data[c][i]);
+        ssd1306_column++;
+    }
+
+    i2c_send(0x00);
+    ssd1306_column++;
+}
+
+void ssd1306_display_string(const char *str)
+{
+    while (str != '\0')
+        ssd1306_display_char(*str++);
+}
+
+void ssd1306_display_binary_byte(unsigned char num)
+{
+    unsigned char i = 7;
+    do
+    {
+        ssd1306_display_char(num & 0x80 ? '1' : '0');
+    } while (i--);
+}
+
+void ssd1306_display_decimal_byte(unsigned char num)
+{
+    unsigned char c;
+    c = num / 100;
+    if (c > 0)
+        ssd1306_display_char('0' + c);
+
+    c = (num % 100) / 10;
+    if (num > 100 || c > 0)
+        ssd1306_display_char('0' + (num / 100));
+
+    ssd1306_display_char('0' + (num % 10));
+}
+
+void ssd1306_set_inversion(unsigned char inverse)
+{
+    ssd1306_send_command(inverse ? SSD1306_INVERT_DISPLAY : SSD1306_NORMAL_DISPLAY);
+}
+
+void ssd1306_set_brightness(unsigned char brightness)
+{
+    ssd1306_send_command(SSD1306_SET_CONTRAST_CONTROL);
+    i2c_send(brightness);
 }
