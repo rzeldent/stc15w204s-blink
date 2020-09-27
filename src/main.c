@@ -1,28 +1,37 @@
 // main.c
 
-#include <8052.h>
+#include <stc/STC15Fxx.h>
 
+#include <uart.h>
 #include <delay.h>
-
 #include <i2c.h>
 #include <ssd1306.h>
 
 // Red led
-#define LED P3_3
+#define LED P33 // P3_3
 // Switch to Ground
-#define SWITCH P3_2
+#define SWITCH P32
+
+unsigned char x = 0;
 
 void main()
 {
-    unsigned char x = 0;
-    i2c_init();
+    uart_init(9600);
 
+    i2c_init();
     ssd1306_init();
 
     while (1)
     {
-        ssd1306_display_string("hello: ");
-        ssd1306_display_decimal_byte(x);
+        //ssd1306_display_char('R');
+        //        uart_send_byte('x');
+        uart_send_string("XY");
+
+        //ssd1306_display_char('5');
+
+        ssd1306_display_string("Hallo!");
+        ssd1306_display_decimal_byte(x, 0);
+
         if (SWITCH)
         {
             LED = 1;
@@ -32,9 +41,12 @@ void main()
         }
         else
         {
-            LED = 1;
+            ssd1306_clear();
         }
+
         x++;
-        ssd1306_clear();
+
+        //ssd1306_set_cursor(0, 0);
+        //ssd1306_clear();
     }
 }

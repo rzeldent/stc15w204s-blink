@@ -89,35 +89,17 @@ void ssd1306_init()
 
 void ssd1306_clear()
 {
-    int i;
+    unsigned int i;
 
-    ssd1306_send_command(SSD1306_SET_COLUMN_ADDR);
-    ssd1306_send_command(0);
-    ssd1306_send_command(127);
-
-    ssd1306_send_command(SSD1306_SET_PAGE_ADDR);
-    ssd1306_send_command(0);
-    ssd1306_send_command(7);
+    ssd1306_set_cursor(0, 0);
 
     i2c_start(SSD1306_ADDRESS << 1);
     i2c_send(SSD1306_DATA_CONTINUE);
-
     // Clear display
-    for (i = 0; i < 1024; i++)
+    for (i = 0; i < SSD1306_WIDTH * SSD1306_HEIGHT / 8; ++i)
         i2c_send(0);
 
-    ssd1306_send_command(SSD1306_SET_COLUMN_ADDR);
-    ssd1306_send_command(0);
-    ssd1306_send_command(127);
-
-    ssd1306_send_command(SSD1306_SET_PAGE_ADDR);
-    ssd1306_send_command(0);
-    ssd1306_send_command(7);
-
-    i2c_start(SSD1306_ADDRESS << 1);
-    i2c_send(SSD1306_DATA_CONTINUE);
-
-    ssd1306_line = 0;
+    ssd1306_set_cursor(0, 0);
 }
 
 void ssd1306_set_cursor(unsigned char line, unsigned char column)
@@ -139,13 +121,12 @@ void ssd1306_set_cursor(unsigned char line, unsigned char column)
 
 void ssd1306_goto_line(unsigned char line)
 {
-    ssd1306_line = line;
     ssd1306_set_cursor(line, 0);
 }
 
 void ssd1306_go_to_next_line()
 {
-    ssd1306_goto_line((ssd1306_line + 1) & 0x07);
+    ssd1306_goto_line(ssd1306_line + 1);
 }
 
 void ssd1306_display_char(char c)
@@ -173,9 +154,9 @@ void ssd1306_display_char(char c)
     ssd1306_column++;
 }
 
-void ssd1306_display_string(const char *str)
+void ssd1306_display_string(char *str)
 {
-    while (str != '\0')
+    while (*str != '\0')
         ssd1306_display_char(*str++);
 }
 
@@ -188,18 +169,23 @@ void ssd1306_display_binary_byte(unsigned char num)
     } while (i--);
 }
 
-void ssd1306_display_decimal_byte(unsigned char num)
+void ssd1306_display_decimal_byte(unsigned char num, unsigned char leading_zeros)
 {
+    unsigned char devisor = 100;
     unsigned char c;
-    c = num / 100;
-    if (c > 0)
-        ssd1306_display_char('0' + c);
+    while (devisor > 1)
+    {
+        c = num / devisor;
+        if (leading_zeros || c > 0)
+        {
+            num -= c * devisor;
+            ssd1306_display_char('0' + c);
+            leading_zeros = 1;
+        }
+        devisor /= 10;
+    }
 
-    c = (num % 100) / 10;
-    if (num > 100 || c > 0)
-        ssd1306_display_char('0' + (num / 100));
-
-    ssd1306_display_char('0' + (num % 10));
+    ssd1306_display_char('0' + num);
 }
 
 void ssd1306_set_inversion(unsigned char inverse)

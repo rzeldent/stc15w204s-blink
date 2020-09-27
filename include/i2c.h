@@ -1,9 +1,9 @@
 #pragma once
 
-#include <8051.h>
+#include <stc/STC15Fxx.h>
 
-#define SDA P0_0
-#define SCL P0_1
+#define SDA P54
+#define SCL P55
 
 #define I2C_NAK 1
 #define I2C_ACK 0
