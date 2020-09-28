@@ -58,31 +58,27 @@ void ssd1306_send_command(unsigned char cmd)
 
 void ssd1306_init()
 {
-    ssd1306_send_command(SSD1306_DISPLAY_OFF);
-    ssd1306_send_command(SSD1306_SET_DISPLAY_CLOCK_DIV_RATIO);
-    ssd1306_send_command(0x80);
-    ssd1306_send_command(SSD1306_SET_MULTIPLEX_RATIO);
-    ssd1306_send_command(0x3F);
-    ssd1306_send_command(SSD1306_SET_DISPLAY_OFFSET);
-    ssd1306_send_command(0x0);
-    ssd1306_send_command(SSD1306_SET_START_LINE | 0x0);
-    ssd1306_send_command(SSD1306_CHARGE_PUMP);
-    ssd1306_send_command(0x14);
-    ssd1306_send_command(SSD1306_MEMORY_ADDR_MODE);
-    ssd1306_send_command(0x00);
-    ssd1306_send_command(SSD1306_SET_SEGMENT_REMAP | 0x1);
-    ssd1306_send_command(SSD1306_COM_SCAN_DIR_DEC);
-    ssd1306_send_command(SSD1306_SET_COM_PINS);
-    ssd1306_send_command(0x12);
-    ssd1306_send_command(SSD1306_SET_CONTRAST_CONTROL);
-    ssd1306_send_command(0xCF);
-    ssd1306_send_command(SSD1306_SET_PRECHARGE_PERIOD);
-    ssd1306_send_command(0xF1);
-    ssd1306_send_command(SSD1306_SET_VCOM_DESELECT);
-    ssd1306_send_command(0x40);
-    ssd1306_send_command(SSD1306_DISPLAY_ALL_ON_RESUME);
-    ssd1306_send_command(SSD1306_NORMAL_DISPLAY);
-    ssd1306_send_command(SSD1306_DISPLAY_ON);
+    const unsigned char commands[] = {
+        SSD1306_DISPLAY_OFF,
+        SSD1306_SET_DISPLAY_CLOCK_DIV_RATIO, 0x80,
+        SSD1306_SET_MULTIPLEX_RATIO, 0x3F,
+        SSD1306_SET_DISPLAY_OFFSET, 0x0,
+        SSD1306_SET_START_LINE | 0x0,
+        SSD1306_CHARGE_PUMP, 0x14,
+        SSD1306_MEMORY_ADDR_MODE, 0x00,
+        SSD1306_SET_SEGMENT_REMAP | 0x1,
+        SSD1306_COM_SCAN_DIR_DEC,
+        SSD1306_SET_COM_PINS, 0x12,
+        SSD1306_SET_CONTRAST_CONTROL, 0xCF,
+        SSD1306_SET_PRECHARGE_PERIOD, 0xF1,
+        SSD1306_SET_VCOM_DESELECT, 0x40,
+        SSD1306_DISPLAY_ALL_ON_RESUME,
+        SSD1306_NORMAL_DISPLAY,
+        SSD1306_DISPLAY_ON};
+
+    unsigned int i;
+    for (i = 0; i < sizeof(commands); ++i)
+        ssd1306_send_command(commands[i]);
 
     ssd1306_clear();
 }
@@ -196,5 +192,5 @@ void ssd1306_set_inversion(unsigned char inverse)
 void ssd1306_set_brightness(unsigned char brightness)
 {
     ssd1306_send_command(SSD1306_SET_CONTRAST_CONTROL);
-    i2c_send(brightness);
+    ssd1306_send_command(brightness);
 }

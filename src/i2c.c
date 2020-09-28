@@ -61,6 +61,22 @@ unsigned char i2c_read(unsigned char acknak)
 	return data;
 }
 
+void i2c_read_bytes(unsigned char addr, unsigned char reg, unsigned char reg_size, unsigned char *values, unsigned char values_size)
+{
+	unsigned char i;
+	i2c_start(addr);
+	// the maximum size of internal address is 3 bytes
+	reg_size &= 3;
+	// write internal register address - most significant byte first
+	while (reg_size-- > 0)
+		i2c_send((unsigned char)(reg >> (reg_size * 8)));
+	i2c_stop();
+	// Read values
+	i2c_start(addr);
+	for (i = 0; i < values_size; ++i)
+		*values++ = i2c_read(i == values_size ? I2C_NAK : I2C_ACK);
+	i2c_stop();
+}
 
 /*****************************************
  * Write to slave device with

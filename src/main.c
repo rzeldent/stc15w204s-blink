@@ -16,6 +16,7 @@ unsigned char x = 0;
 
 void main()
 {
+    double x = 3.1415;
     uart_init(9600);
 
     i2c_init();
