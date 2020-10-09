@@ -1,7 +1,5 @@
 #pragma once
 
-#include <stc/STC15Fxx.h>
-
 #define SDA P54
 #define SCL P55
 
