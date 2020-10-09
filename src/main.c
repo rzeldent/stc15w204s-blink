@@ -8,7 +8,8 @@
 #include <ssd1306.h>
 
 // Red led
-#define LED P33 // P3_3
+//#define LED P33 // STC15W204S
+#define LED P10 // STC15W408AS
 // Switch to Ground
 #define SWITCH P32
 
