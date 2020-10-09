@@ -1,4 +1,4 @@
-#include <stc/STC15Fxx.h>
+#include <STC15Fxx.h>
 
 #include <uart.h>
 #include <oscilator.h>
