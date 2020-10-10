@@ -11,22 +11,18 @@
 // #include "STC89xx.h"     // Official header from STC-ISP for STC89xx / STC90xx
 // #include "STC90C5xAD.h"  // Official header from STC-ISP for STC90C5xAD
 
+#include <demoboards.h>
+
 #include <uart.h>
 #include <delay.h>
 #include <i2c.h>
 #include <ssd1306.h>
 
-// Red led
-//#define LED P33 // STC15W204S
-#define LED P10 // STC15W408AS
-// Switch to Ground
-#define SWITCH P32
-
-unsigned long x = 0;
 
 void main()
 {
-    //double x = 3.1415;
+    unsigned long x;
+    
     uart_init(9600);
 
     i2c_init();
@@ -43,18 +39,21 @@ void main()
         //ssd1306_display_string("Hallo: ");
         ssd1306_display_decimal_byte(x, 0);
 
-        if (SWITCH)
+        if (SWITCH_GND)
         {
-            LED = 1;
+            LED_BUILDIN = LED_BUILDIN_ON;
             delay_ms(50);
-            LED = 0;
+            LED_BUILDIN = LED_BUILDIN_OFF;
             delay_ms(950);
             //ssd1306_set_pos(0, 0);
         }
         else
         {
             ssd1306_clear();
-            ssd1306_draw_circle(SSD1306_WIDTH / 2, SSD1306_HEIGHT / 2,  30, 1);
+//            ssd1306_draw_circle(SSD1306_WIDTH / 2, SSD1306_HEIGHT / 2,  30, 1);
+    i2c_init();
+    ssd1306_init();
+
             delay_ms(1000);
         }
 

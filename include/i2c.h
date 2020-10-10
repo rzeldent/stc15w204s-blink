@@ -1,8 +1,5 @@
 #pragma once
 
-#define SDA P54
-#define SCL P55
-
 #define I2C_NAK 1
 #define I2C_ACK 0
 

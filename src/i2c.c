@@ -1,25 +1,26 @@
 #include <STC15Fxx.h>
+#include <demoboards.h>
 #include <i2c.h>
 
 void i2c_init()
 {
-	SDA = 1;
-	SCL = 1;
+	I2C_SDA = 1;
+	I2C_SCL = 1;
 }
 
 unsigned char i2c_start(unsigned char addr)
 {
-	SDA = 0;
-	SCL = 0;
+	I2C_SDA = 0;
+	I2C_SCL = 0;
 	return i2c_send(addr);
 }
 
 void i2c_stop()
 {
-	SCL = 0;
-	SDA = 0;
-	SCL = 1;
-	SDA = 1;
+	I2C_SCL = 0;
+	I2C_SDA = 0;
+	I2C_SCL = 1;
+	I2C_SDA = 1;
 }
 
 unsigned char i2c_send(unsigned char data)
@@ -28,15 +29,15 @@ unsigned char i2c_send(unsigned char data)
 	unsigned char ack_bit;
 	for (i = 0; i < 8; i++)
 	{
-		SDA = (data & 0x80) != 0;
-		SCL = 1;
-		SCL = 0;
+		I2C_SDA = (data & 0x80) != 0;
+		I2C_SCL = 1;
+		I2C_SCL = 0;
 		data <<= 1;
 	}
-	SDA = 1;
-	SCL = 1;
-	ack_bit = SDA;
-	SCL = 0;
+	I2C_SDA = 1;
+	I2C_SCL = 1;
+	ack_bit = I2C_SDA;
+	I2C_SCL = 0;
 	return ack_bit;
 }
 
@@ -46,17 +47,17 @@ unsigned char i2c_read(unsigned char acknak)
 	unsigned char data = 0;
 	for (i = 0; i < 8; i++)
 	{
-		SCL = 1;
-		if (SDA)
+		I2C_SCL = 1;
+		if (I2C_SDA)
 			data |= 1;
 		if (i < 7)
 			data <<= 1;
-		SCL = 0;
+		I2C_SCL = 0;
 	}
-	SDA = acknak;
-	SCL = 1;
-	SCL = 0;
-	SDA = 1;
+	I2C_SDA = acknak;
+	I2C_SCL = 1;
+	I2C_SCL = 0;
+	I2C_SDA = 1;
 
 	return data;
 }
