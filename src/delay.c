@@ -1,7 +1,7 @@
 #include <delay.h>
 #include <oscilator.h>
 
-void delay_ms(unsigned int ms)
+void delay_ms(uint32_t ms)
 {
     unsigned int i;
     do

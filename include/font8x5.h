@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 #define FONT_SIZE 5
 
-extern const unsigned char font_data[][FONT_SIZE];
+extern const uint8_t font_data[][FONT_SIZE];

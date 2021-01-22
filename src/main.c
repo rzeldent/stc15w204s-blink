@@ -13,6 +13,7 @@
 
 #include <demoboards.h>
 
+#include <stdint.h>
 #include <uart.h>
 #include <delay.h>
 #include <i2c.h>
@@ -21,12 +22,15 @@
 
 void main()
 {
-    unsigned long x;
+    uint32_t x;
     
     uart_init(9600);
 
     i2c_init();
     ssd1306_init();
+
+ ssd1306_goto_row(4);
+
 
     do
     {
@@ -37,7 +41,7 @@ void main()
         //ssd1306_display_char('5');
 
         //ssd1306_display_string("Hallo: ");
-        ssd1306_display_decimal_byte(x, 0);
+        ssd1306_display_decimal(x, 0);
 
         if (SWITCH_GND)
         {

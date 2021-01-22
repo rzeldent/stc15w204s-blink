@@ -1,6 +1,6 @@
 #include <font8x5.h>
 
-const unsigned char font_data[][FONT_SIZE] =
+const uint8_t font_data[][FONT_SIZE] =
     {
         {0x00, 0x00, 0x00, 0x00, 0x00}, // space
         {0x00, 0x00, 0x2f, 0x00, 0x00}, // !

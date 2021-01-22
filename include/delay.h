@@ -1,3 +1,5 @@
 #pragma once
 
-extern void delay_ms(unsigned int ms);
+#include <stdint.h>
+
+extern void delay_ms(uint32_t ms);
