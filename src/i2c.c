@@ -1,4 +1,5 @@
 #include <STC15Fxx.h>
+
 #include <demoboards.h>
 #include <i2c.h>
 
@@ -62,65 +63,41 @@ uint8_t i2c_read(uint8_t acknak)
 	return data;
 }
 
-void i2c_read_bytes(uint8_t addr, uint8_t reg, uint8_t reg_size, uint8_t *values, uint8_t values_size)
+void i2c_read_register(uint8_t addr, uint32_t reg, uint8_t reg_size, uint8_t *values, uint16_t values_size)
 {
-	uint8_t i;
 	i2c_start(addr);
 	// the maximum size of internal address is 3 bytes
 	reg_size &= 3;
 	// write internal register address - most significant byte first
-	while (reg_size-- > 0)
+	while (reg_size--)
 		i2c_send((uint8_t)(reg >> (reg_size * 8)));
+
 	i2c_stop();
 	// Read values
 	i2c_start(addr);
-	for (i = 0; i < values_size; ++i)
-		*values++ = i2c_read(i == values_size ? I2C_NAK : I2C_ACK);
+
+	if (values_size--)
+	{
+		while (values_size--)
+			*values++ = i2c_read(I2C_ACK);
+
+		*values = i2c_read(I2C_NAK);
+	}
+
 	i2c_stop();
 }
 
-/*****************************************
- * Write to slave device with
- * slave address e.g. say 0x20
- *****************************************/
-/* Init i2c ports first */
-//	i2c_init();
-/* Send start condition */
-//	i2c_start();
-/* Send slave address */
-//	ack = i2c_send(0x20);
-/*
-	 * ack == 1 => NAK
-	 * ack == 0 => ACK
-	 */
-//	ack = i2c_send(0x07);
-/* Send another data */
-//	ack = i2c_send(0x10);
-/* Send stop condition */
-//	i2c_stop();
+void i2c_send_register(uint8_t addr, uint32_t reg, uint8_t reg_size, uint8_t *values, uint16_t values_size)
+{
+	i2c_start(addr);
+	// the maximum size of internal address is 3 bytes
+	reg_size &= 3;
+	// write internal register address - most significant byte first
+	while (reg_size--)
+		i2c_send((uint8_t)(reg >> (reg_size * 8)));
 
-/*****************************************
- * Read from slave device with
- * slave address e.g. say 0x20
- *****************************************/
-/* Init i2c ports first - Should be done once in main */
-//	i2c_init();
-/* Send start condition */
-//	i2c_start();
-/*
-	 * Send slave address with Read bit set
-	 * So address is 0x20 | 1 = 0x21
-	 */
-//	i2c_send(0x21);
-//	data = i2c_read();
-/* Send ack */
-//	i2c_ack();
-/* Read last byte */
-//	data = i2c_read();
-/*
-	 * Send nak for last byte to indicate
-	 * End of transmission
-	 */
-//	i2c_nak();
-/* Send stop condition */
-//	i2c_stop();
+	while (values_size--)
+		i2c_send(*values++);
+
+	i2c_stop();
+}

@@ -6,7 +6,7 @@
 // #include "STC12C20xx.h"  // Official header from STC-ISP for STC12C20xx
 // #include "STC12C54xx.h"  // Official header from STC-ISP for STC12C54xx
 // #include "STC12C56xx.h"  // Official header from STC-ISP for STC12C56xx
-#include <STC15Fxx.h>    // Official header from STC-ISP for STC15Wxx / STC15Fxx
+#include <STC15Fxx.h> // Official header from STC-ISP for STC15Wxx / STC15Fxx
 // #include "STC15F104E.h"  // Official header from STC-ISP for STC15F204EA / STC15F104E
 // #include "STC89xx.h"     // Official header from STC-ISP for STC89xx / STC90xx
 // #include "STC90C5xAD.h"  // Official header from STC-ISP for STC90C5xAD
@@ -19,18 +19,16 @@
 #include <i2c.h>
 #include <ssd1306.h>
 
-
 void main()
 {
     uint32_t x;
-    
+
     uart_init(9600);
 
     i2c_init();
     ssd1306_init();
 
- ssd1306_goto_row(4);
-
+    // ssd1306_goto_row(4);
 
     do
     {
@@ -54,9 +52,9 @@ void main()
         else
         {
             ssd1306_clear();
-//            ssd1306_draw_circle(SSD1306_WIDTH / 2, SSD1306_HEIGHT / 2,  30, 1);
-    i2c_init();
-    ssd1306_init();
+            //            ssd1306_draw_circle(SSD1306_WIDTH / 2, SSD1306_HEIGHT / 2,  30, 1);
+            i2c_init();
+            ssd1306_init();
 
             delay_ms(1000);
         }

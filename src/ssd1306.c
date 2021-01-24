@@ -42,6 +42,9 @@
 #define SSD1306_PAGE_6 0xB6
 #define SSD1306_PAGE_7 0xB7
 
+#define SSD1306_SETLOWCOLUMN 0x01
+#define SSD1306_SETHIGHCOLUMN 0x10
+
 ////////////////////////////////////////////////////////////////////////
 // Hardware Configuration
 
@@ -69,9 +72,6 @@
 #define SSD1306_CHARGEPUMP_ON 0x14
 #define SSD1306_CHARGEPUMP_OFF 0x10
 
-#define SSD1306_SETLOWCOLUMN 0x01
-#define SSD1306_SETHIGHCOLUMN 0x10
-
 #define SSD1306_EXTERNALVCC 0x01  ///< External display voltage source
 #define SSD1306_SWITCHCAPVCC 0x02 ///< Gen. display voltage from 3.3V
 
@@ -85,8 +85,7 @@
 #define SSD1306_SET_VERTICAL_SCROLL_AREA 0xA3
 
 //  Variables
-uint8_t ssd1306_page;
-int8_t ssd1306_column;
+uint8_t ssd1306_row, ssd1306_column;
 
 void ssd1306_start_command(uint8_t cmd)
 {
@@ -103,8 +102,6 @@ void ssd1306_send_command(uint8_t cmd)
 
 void ssd1306_init()
 {
-    //uart_send_string("ssd1306_init");
-
     const uint8_t commands[] = {
         // Fundamental Commands
         SSD1306_DISPLAYOFF,
@@ -136,99 +133,71 @@ void ssd1306_init()
     for (i = 0; i < sizeof(commands); ++i)
         ssd1306_send_command(commands[i]);
 
+    ssd1306_start_command(SSD1306_SETPAGEADDR);
+    i2c_send(0);                         // Page start address
+    i2c_send((SSD1306_HEIGHT >> 3) - 1); // Page end address
+    i2c_stop();
+
+    ssd1306_start_command(SSD1306_SETCOLUMNADDR);
+    i2c_send(0);                 // Column start address
+    i2c_send(SSD1306_WIDTH - 1); // Column end address
+    i2c_stop();
+
     ssd1306_clear();
 }
 
-void ssd1306_fill_screen(uint8_t b)
+void ssd1306_set_pos(uint8_t row, uint8_t column)
 {
-    //uart_send_string("ssd1306_fill_screen\n");
+   ssd1306_send_command(SSD1306_PAGE_0 | (row >> 3));
+    ssd1306_send_command(SSD1306_SETHIGHCOLUMN | (column >> 4));
+    ssd1306_send_command(SSD1306_SETLOWCOLUMN | (column & 0x0F));
+    /*
+	ssd1306_send_command(SSD1306_SETPAGEADDR);
+	ssd1306_send_command(row); // Page start address (0 = reset)
+	ssd1306_send_command(SSD1306_HEIGHT / 8 - 1); // Page end address	
 
-    uint16_t i;
-    ssd1306_set_pos(0, 0);
-    for (i = 0; i < SSD1306_WIDTH * SSD1306_HEIGHT / 8; ++i)
-        i2c_send(b);
-}
-
-void ssd1306_clear()
-{
-    //uart_send_string("ssd1306_clear\n");
-
-    // Fill with 0
-    ssd1306_fill_screen(0);
-}
-
-void ssd1306_display(uint8_t *image)
-{
-    //uart_send_string("ssd1306_display\n");
-
-    unsigned int i;
-    ssd1306_set_pos(0, 0);
-    // Clear display
-    for (i = 0; i < SSD1306_WIDTH * SSD1306_HEIGHT / 8; ++i)
-        i2c_send(*image++);
-
-    ssd1306_set_pos(0, 0);
-}
-
-void ssd1306_set_pos(uint8_t column, uint8_t page)
-{
-    //uart_send_string("ssd1306_set_pos\n");
-
-    ssd1306_send_command(SSD1306_SETCOLUMNADDR);
-    ssd1306_send_command(column);
-    ssd1306_send_command(SSD1306_WIDTH - 1);
-
-    ssd1306_send_command(SSD1306_SETPAGEADDR);
-    ssd1306_send_command(page);
-    ssd1306_send_command((SSD1306_HEIGHT / 8) - 1);
-
-    ssd1306_page = page;
+	ssd1306_send_command(SSD1306_SETCOLUMNADDR);
+	ssd1306_send_command(column);   // Column start address (0 = reset)
+	ssd1306_send_command(SSD1306_WIDTH - 1); // Column end address (127 = reset)
+*/
+    ssd1306_row = row;
     ssd1306_column = column;
 
     i2c_start(SSD1306_ADDRESS << 1);
     i2c_send(SSD1306_DATA_CONTINUE);
 }
 
-void ssd1306_set_xy(uint8_t x, uint8_t y)
+void ssd1306_clear()
 {
-    //uart_send_string("ssd1306_set_xy\n");
-
-    ssd1306_send_command(SSD1306_PAGE_0 + y);
-    i2c_send((x >> 4) | SSD1306_SETHIGHCOLUMN);  // | 0x10
-    i2c_send((x & 0x0F) | SSD1306_SETLOWCOLUMN); // | 0x01
-    i2c_stop();
-
-    i2c_start(SSD1306_ADDRESS << 1);
-    i2c_send(SSD1306_DATA_CONTINUE);
+    uint16_t i;
+    ssd1306_set_pos(0, 0);
+    for (i = 0; i < SSD1306_WIDTH * SSD1306_HEIGHT / 8; ++i)
+        i2c_send(0x00);
 }
 
-void ssd1306_set_pixel(uint8_t x, uint8_t y, uint8_t color)
+void ssd1306_image(uint8_t *image)
 {
-    //uart_send_string("ssd1306_set_pixel\n");
-
-    uint8_t mask = 1 << y % 8;
-    ssd1306_set_pos(x, y / 8);
-    i2c_send(color ? mask : ~mask);
+    uint16_t i;
+    ssd1306_set_pos(0, 0);
+    for (i = 0; i < SSD1306_WIDTH * SSD1306_HEIGHT / 8; ++i)
+        i2c_send(*image++);
 }
 
-void ssd1306_goto_row(uint8_t page)
+void ssd1306_goto_row(uint8_t row)
 {
-    //uart_send_string("ssd1306_goto_row\n");
-
-    ssd1306_set_pos(page, 0);
+    ssd1306_set_pos(row, 0);
 }
 
 void ssd1306_go_to_next_row()
 {
-    //uart_send_string("ssd1306_go_to_next_row\n");
-
-    ssd1306_goto_row(ssd1306_page + 1);
+    if (ssd1306_row >= (SSD1306_HEIGHT >> 3) - 1)
+        ssd1306_clear();
+    else
+        ssd1306_goto_row(ssd1306_row + 1);
 }
 
 void ssd1306_display_char(char c)
 {
-    //uart_send_string("ssd1306_display_char\n");
-
     uint8_t i;
     if (c == '\n')
     {
@@ -236,30 +205,28 @@ void ssd1306_display_char(char c)
         return;
     }
 
-    if (ssd1306_column >= SSD1306_WIDTH - FONT_SIZE)
+    // FONT_SIZE_WITH + 1 because there is a space
+    if (ssd1306_column + FONT_SIZE_WIDTH + 1 >= SSD1306_WIDTH)
         ssd1306_go_to_next_row();
 
     // starts from space (0x20)
     c -= ' ';
-    for (i = 0; i < FONT_SIZE; ++i)
+    for (i = 0; i < FONT_SIZE_WIDTH; ++i)
         i2c_send(font_data[c][i]);
 
+    // Add a space
     i2c_send(0x00);
-    ssd1306_column += FONT_SIZE + 1;
+    ssd1306_column += FONT_SIZE_WIDTH + 1;
 }
 
 void ssd1306_display_string(char *str)
 {
-//    uart_send_string("ssd1306_display_string\n");
-
     while (*str != '\0')
         ssd1306_display_char(*str++);
 }
 
 void ssd1306_display_decimal(uint32_t num, uint8_t leading_zeros)
 {
-    //uart_send_string("ssd1306_display_decimal_byte\n");
-
     uint32_t devisor = 1000000000;
     uint8_t c;
     while (devisor > 1)
